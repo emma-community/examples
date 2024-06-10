@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Leaderboard</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+</head>
+
+<body>
+    <h1>Leaderboard</h1>
+    <ul>
+        {% for entry in top_scores %}
+        <li>{{ entry.username }}: {{ entry.score }} ({{ entry.timestamp }})</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Multi-Cloud Status</h2>
+    <pre id="status"></pre>
+</body>
+
+<script>
+    function fetchLeaderboard() {
+        fetch('/')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newLeaderboard = doc.querySelector('ul');
+                document.querySelector('ul').innerHTML = newLeaderboard.innerHTML;
+            })
+            .catch(err => console.error('Failed to fetch leaderboard:', err));
+    }
+
+    function fetchReplicationStatus() {
+        fetch('/status/cluster')
+            .then(response => response.json())
+            .then(data => {
+                const formattedData = JSON.stringify(data, null, 2);
+                document.getElementById('status').textContent = formattedData;
+            })
+            .catch(err => console.error('Failed to fetch status:', err));
+    }
+
+    setInterval(fetchLeaderboard, 500);
+    setInterval(fetchReplicationStatus, 500);
+</script>
+
+</html>
